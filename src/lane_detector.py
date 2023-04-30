@@ -67,14 +67,14 @@ class LaneDetector:
                                 del slope_tracker[oth_slope]
                             else:
                                 get_rid = True
-                                continue
+                                break
                         else:
                             if x1 > slope_tracker[oth_slope][0]:
                                 filtered_lines.remove(slope_tracker[oth_slope])
                                 del slope_tracker[oth_slope]
                             else:
                                 get_rid = True
-                                continue
+                                break
             if get_rid:
                 filtered_lines.remove(line)
                 continue
