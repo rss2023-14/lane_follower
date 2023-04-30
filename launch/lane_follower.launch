@@ -4,8 +4,9 @@
 	<!-- Load parameters -->
 	<rosparam command="load" file="$(find lane_follower)/params.yaml"/>
 
-	<!-- Begin lane detection -->
+	<!-- Begin lane detection and parsing -->
 	<node name="lane_detector" pkg="lane_follower" type="lane_detector.py" output="screen"/>
+	<node name="homography" pkg="lane_follower" type="homography.py" output="screen"/>
 
 	<!-- Start controllers -->
 	<node name="safety_controller" pkg="lane_follower" type="safety_controller.py" output="screen"/>
