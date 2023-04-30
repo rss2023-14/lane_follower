@@ -48,6 +48,9 @@ class LaneDetector:
                 filtered_lines.append(list(line[0]))
                     
         #filter lines again, this time to try to get a single line per lane
+
+        #basically, I am checking all the lines to see if there are lines which have very similar slopes, and if so,
+        # I am deleting the ones which have similar slopes and are further from the center of the image.
         slope_tracker = {}
         copy_filt = filtered_lines.copy()
         for line in copy_filt:
@@ -80,8 +83,9 @@ class LaneDetector:
 
                         
             
-        i = 0
         # print(slope_tracker)
+        #This is mostly for visualization on the images, won't be needed in the actual function.
+        #however, i do construct the line equations here, which we may want to do pre homography
         y_return =  int(np.floor(height*0.9))
         if len(filtered_lines) == 2:
             x1,y1,x2,y2 = filtered_lines[0]
@@ -95,7 +99,8 @@ class LaneDetector:
             x_return = int(np.floor((x_lane_1+x_lane_2)/2))
             cv.circle(img, (x_return,y_return), 5, (0, 0, 255), -1)
 
-        
+        #more visualization
+        i = 0
         for line in filtered_lines:
             x1,y1,x2,y2 = line
             
