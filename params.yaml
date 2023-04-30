@@ -1,0 +1,19 @@
+# pure pursuit parameters
+lookahead_distance: 1.0
+end_threshold: 0.25
+speed: 2.0
+kp: 0.4
+ki: 0.0
+kd: 0.01
+
+# lane detector parameters
+
+
+# safety controller parameters
+look_ahead_time: 0.5
+half_car_width: 0.2
+ignore_close_distance: 0.1
+
+# topics
+drive_topic: /drive
+odom_topic: /odom

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+	<!-- Load parameters -->
+	<rosparam command="load" file="$(find lane_follower)/params.yaml"/>
+
+	<!-- Begin lane detection -->
+	<node name="lane_detector" pkg="lane_follower" type="lane_detector.py" output="screen"/>
+
+	<!-- Start controllers -->
+	<node name="safety_controller" pkg="lane_follower" type="safety_controller.py" output="screen"/>
+	<node name="pure_pursuit" pkg="lane_follower" type="pure_pursuit.py" output="screen">
+		<rosparam param="publish_metrics">false</rosparam>
+	</node>
+</launch>
