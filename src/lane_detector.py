@@ -108,7 +108,7 @@ class LaneDetector:
 
 
     ##IDEAS
-    # REturn line locations after first call back, use these to see where we atski
+    # REturn line locations after first call back, use these to see where we at
 
     # make the line, return it, next time if theres only one, we peep if that one is close by the previous
 
