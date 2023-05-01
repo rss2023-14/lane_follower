@@ -122,6 +122,9 @@ class LaneDetector:
             else:
                 return [(x_lane_1,y_return), None]
 
+        else:
+            rospy.logerr("Either no lines or more than 2 lines found!")
+
         self.lane_pub.publish(msg)
 
             # Changed from keeping track of positions to checking slopes
