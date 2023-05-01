@@ -10,7 +10,8 @@ class LaneDetector:
     """
 
     def __init__(self):
-        pass
+        
+        self.prev_line_locations = None
 
     def f1(self):
         pass
@@ -22,6 +23,7 @@ class LaneDetector:
         img = cv.imread(image)
 
         # mask top half of image
+
         top_half_mask = np.zeros_like(img)
         height = img.shape[0]
         height_part = int(np.floor(height*0.5))
@@ -86,18 +88,50 @@ class LaneDetector:
         # print(slope_tracker)
         #This is mostly for visualization on the images, won't be needed in the actual function.
         #however, i do construct the line equations here, which we may want to do pre homography
+
         y_return =  int(np.floor(height*0.9))
         if len(filtered_lines) == 2:
             x1,y1,x2,y2 = filtered_lines[0]
-            m = (y2-y1)/(x2-x1)
-            b = y1 - m*x1
-            x_lane_1 = (y_return-b)/m
+            m_1 = (y2-y1)/(x2-x1)
+            b = y1 - m_2*x1
+            x_lane_1 = (y_return-b)/m_1
             x1,y1,x2,y2 = filtered_lines[1]
-            m = (y2-y1)/(x2-x1)
-            b = y1 - m*x1
-            x_lane_2 = (y_return-b)/m
-            x_return = int(np.floor((x_lane_1+x_lane_2)/2))
-            cv.circle(img, (x_return,y_return), 5, (0, 0, 255), -1)
+            m_2 = (y2-y1)/(x2-x1)
+            b = y1 - m_2*x1
+            x_lane_2 = (y_return-b)/m_2
+            # x_return = int(np.floor((x_lane_1+x_lane_2)/2))
+            # cv.circle(img, (x_return,y_return), 5, (0, 0, 255), -1)
+            if m_1 > 0:
+                self.prev_line_locations = [filtered_lines[0],filtered_lines[1]]
+                return [(x_lane_1,y_return),(x_lane_2,y_return)]
+            else:
+                self.prev_line_locations = [filtered_lines[1],filtered_lines[0]]
+                return [(x_lane_2,y_return),(x_lane_1,y_return)]
+
+        elif len(filtered_lines) == 1:
+            x1,y1,x2,y2 = filtered_lines[0]
+            m_1 = (y2-y1)/(x2-x1)
+            b = y1 - m_2*x1
+            x_lane_1 = (y_return-b)/m_1
+            if None in self.prev_line_locations:
+                idx_none = self.prev_line_locations.index(None)
+                if idx_none == 0:
+                    self.prev_line_locations = [None, filtered_lines[0]]
+                    return [None, (x_lane_1,y_return)]
+                else:
+                    self.prev_line_locations = [filtered_lines[0],None]
+                    return [(x_lane_1,y_return), None]
+            left_lane = self.prev_line_locations[0]
+            right_lane = self.prev_line_locations[1]
+            dist_left = abs(left_lane[0]-x1)+abs(left_lane[1]-y1)+abs(left_lane[2]-x2)+abs(left_lane[3]-y2)
+            dist_right = abs(right_lane[0]-x1)+abs(right_lane[1]-y1)+abs(right_lane[2]-x2)+abs(right_lane[3]-y2)
+            if dist_left < dist_right:
+                self.prev_line_locations = [filtered_lines[0],None]
+                return [(x_lane_1,y_return), None]  
+            else:
+                self.prev_line_locations = [None, filtered_lines[0]]
+                return [None, (x_lane_1,y_return)]
+
 
         #more visualization
         i = 0
