@@ -5,7 +5,7 @@ import numpy as np
 import cv2
 import tf2_ros
 
-from geometry_msgs.msg import PointStamped, TransformStamped
+from geometry_msgs.msg import PointStamped, TransformStamped, PoseArray
 from visualization_msgs.msg import Marker
 import tf2_geometry_msgs
 
@@ -67,7 +67,7 @@ class HomographyTransformer:
         LOOKAHEAD_TOPIC = rospy.get_param("lookahead_topic")
         LANE_TOPIC = rospy.get_param("lane_topic")
         self.lookahead_pub = rospy.Publisher(LOOKAHEAD_TOPIC, PointStamped, queue_size=1)
-        self.lane_sub = rospy.Subscriber(LANE_TOPIC, PointStamped, self.find_lookahead_point, queue_size=1) # TODO: Change message type
+        self.lane_sub = rospy.Subscriber(LANE_TOPIC, PoseArray, self.find_lookahead_point, queue_size=1) # TODO: Change message type
 
     def find_lookahead_point(self, msg):
         """
@@ -83,8 +83,10 @@ class HomographyTransformer:
             x = (x1 + x2)/2
             y = (y1 + y2)/2
             return (x, y)
+        
+        x = msg.poses.position.x
+        y = msg.poses.position.y
 
-        self.LOOKAHEAD_HOMOGRAPHY = rospy.get_param("lookahead_distance", 1.0) # can change rosparam here
         # subscribe to topic that is publishing the lines in the in lane detector
         # lines are in the form [(x_lane_1,y_return),(x_lane_2,y_return)] (x, y)
         line_one, line_two = returnObject # msg.line_one.x, msg.line_one.y, msg.line_two.x, msg.line_two.y
@@ -101,7 +103,7 @@ class HomographyTransformer:
             pass
         else: # both lines, mean
             
-            chase = midpoint_formula()
+            
             pass
 
         return chase

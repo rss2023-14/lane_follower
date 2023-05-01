@@ -7,6 +7,7 @@ ki: 0.0
 kd: 0.01
 
 # lane detector parameters
+lookahead_distance_homog: 0.9
 
 
 # safety controller parameters

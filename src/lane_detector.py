@@ -4,6 +4,8 @@ import rospy
 import numpy as np
 import cv2 as cv
 
+from geometry_msgs.msg import PointStamped, TransformStamped, PoseArray, Pose
+
 class LaneDetector:
     """
     TODO
@@ -12,6 +14,10 @@ class LaneDetector:
     def __init__(self):
         
         self.prev_line_locations = None
+        self.LOOKAHEAD_HOMOGRAPHY = rospy.get_param("lookahead_distance_homog", 0.9) # can change rosparam here
+
+        LANE_TOPIC = rospy.get_param("lane_topic")
+        self.lane_pub = rospy.Publisher(LANE_TOPIC, PoseArray, queue_size=1)
 
     def f1(self):
         pass
@@ -82,14 +88,16 @@ class LaneDetector:
                 continue
             slope_tracker[slope] = line
 
-
-                        
             
         # print(slope_tracker)
         #This is mostly for visualization on the images, won't be needed in the actual function.
         #however, i do construct the line equations here, which we may want to do pre homography
 
-        y_return =  int(np.floor(height*0.9))
+        msg = PoseArray()
+        msg.header = Header()
+        msg.header.frame_id = "car" # TODO: car? what is this, left camera sensor
+        
+        y_return =  int(np.floor(height * self.LOOKAHEAD_HOMOGRAPHY )) # = 0.9, feel free to change back for local testing
         if len(filtered_lines) == 2:
             x1,y1,x2,y2 = filtered_lines[0]
             m_1 = (y2-y1)/(x2-x1)
@@ -103,9 +111,11 @@ class LaneDetector:
             # cv.circle(img, (x_return,y_return), 5, (0, 0, 255), -1)
             if m_1 < 0:
                 self.prev_line_locations = [filtered_lines[0],filtered_lines[1]]
+                msg.poses = [Pose(x_lane_1,y_return), Pose(x_lane_2,y_return)]
                 return [(x_lane_1,y_return),(x_lane_2,y_return)]
             else:
                 self.prev_line_locations = [filtered_lines[1],filtered_lines[0]]
+                msg.poses = [Pose(x_lane_2,y_return), Pose(x_lane_1,y_return)]
                 return [(x_lane_2,y_return),(x_lane_1,y_return)]
 
         elif len(filtered_lines) == 1:
@@ -117,9 +127,11 @@ class LaneDetector:
                 idx_none = self.prev_line_locations.index(None)
                 if idx_none == 0:
                     self.prev_line_locations = [None, filtered_lines[0]]
+                    msg.poses = [None, Pose(x_lane_1,y_return)]
                     return [None, (x_lane_1,y_return)]
                 else:
                     self.prev_line_locations = [filtered_lines[0],None]
+                    msg.poses = [Pose(x_lane_1,y_return), None]
                     return [(x_lane_1,y_return), None]
             left_lane = self.prev_line_locations[0]
             right_lane = self.prev_line_locations[1]
@@ -127,10 +139,14 @@ class LaneDetector:
             dist_right = abs(right_lane[0]-x1)+abs(right_lane[1]-y1)+abs(right_lane[2]-x2)+abs(right_lane[3]-y2)
             if dist_left < dist_right:
                 self.prev_line_locations = [filtered_lines[0],None]
+                msg.poses = [Pose(x_lane_1,y_return), None]
                 return [(x_lane_1,y_return), None]  
             else:
                 self.prev_line_locations = [None, filtered_lines[0]]
+                msg.poses = [None, Pose(x_lane_1,y_return)]
                 return [None, (x_lane_1,y_return)]
+            
+        self.lane_pub.publish(msg)
 
 
         #more visualization
