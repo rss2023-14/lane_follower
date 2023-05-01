@@ -91,26 +91,26 @@ class HomographyTransformer:
         line_one, line_two = msg # msg should be a 2 element array of lines in the form [(x_lane_1,y_return),(x_lane_2,y_return)] (x, y)
         
         if line_two is None: # only left line detected, set distance, will select based on axis
-            x1 = line_one.position.x
+            x1 = line_one.position.x + self.SINGLE_LANE_OFFSET
             y1 = line_one.position.y
             line_one_real_world = self.pixel_to_world(x1, y1)
             
             to_chase = PointStamped()
             to_chase.header = Header()
             to_chase.header.frame_id = "frame_id" # TODO
-            to_chase.point.x = line_one_real_world[0] + self.SINGLE_LANE_OFFSET
+            to_chase.point.x = line_one_real_world[0]
             to_chase.point.y = line_one_real_world[1]
 
             
         elif line_one is None: # only right line detected
-            x2 = line_two.position.x
+            x2 = line_two.position.x - self.SINGLE_LANE_OFFSET
             y2 = line_two.position.y
             line_two_real_world = self.pixel_to_world(x2, y2)
             
             to_chase = PointStamped()
             to_chase.header = Header()
             to_chase.header.frame_id = "frame_id" # TODO
-            to_chase.point.x = line_two_real_world[0] - self.SINGLE_LANE_OFFSET
+            to_chase.point.x = line_two_real_world[0]
             to_chase.point.y = line_two_real_world[1]
             
             
