@@ -130,7 +130,6 @@ class HomographyTransformer:
             to_chase.point.y = midpoint[1]
 
         to_return = self.transform_to_base_link(to_chase)
-
         self.lookahead_pub.publish(to_return)
         
 
