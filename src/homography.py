@@ -3,9 +3,11 @@
 import rospy
 import numpy as np
 import cv2
+import tf2_ros
 
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PointStamped, TransformStamped
 from visualization_msgs.msg import Marker
+import tf2_geometry_msgs
 
 ##############################################
 # pixels (i,j), images taken from left camera sensor
@@ -29,6 +31,8 @@ PTS_GROUND_PLANE = [[15.5,   4.0],
                     [24.5,  -16.0],
                     [41.75,  2.25],
                     [39.5,  -8.0]]
+
+METERS_PER_INCH = 0.0254
 ##############################################
 
 class HomographyTransformer:
@@ -55,8 +59,54 @@ class HomographyTransformer:
 
         self.h, err = cv2.findHomography(np_pts_image, np_pts_ground)
 
-    def find_lookahead_point(self):
-        pass
+        # Prepare for transforms between base_link and left_zed_camera
+        self.tf_buffer = tf2_ros.Buffer()
+        self.listener = tf2_ros.TransformListener(self.tf_buffer)
+
+        # Take lane messages, publish lookahead points
+        LOOKAHEAD_TOPIC = rospy.get_param("lookahead_topic")
+        LANE_TOPIC = rospy.get_param("lane_topic")
+        self.lookahead_pub = rospy.Publisher(LOOKAHEAD_TOPIC, PointStamped, queue_size=1)
+        self.lane_sub = rospy.Subscriber(LANE_TOPIC, PointStamped, self.find_lookahead_point, queue_size=1) # TODO: Change message type
+
+    def find_lookahead_point(self, msg):
+        """
+        using points from two lines, return a point for the car to go 
+        to in the pixel frame in the form (x, y)
+        """
+
+        def line_equation(line, x):
+            y = line[0] * x + line[1]
+            return y
+        
+        def midpoint_formula(x1, y1, x2, y2):
+            x = (x1 + x2)/2
+            y = (y1 + y2)/2
+            return (x, y)
+
+        self.LOOKAHEAD_HOMOGRAPHY = rospy.get_param("lookahead_distance", 1.0) # can change rosparam here
+        # subscribe to topic that is publishing the lines in the in lane detector
+        # lines are in the form [(x_lane_1,y_return),(x_lane_2,y_return)] (x, y)
+        line_one, line_two = returnObject # msg.line_one.x, msg.line_one.y, msg.line_two.x, msg.line_two.y
+
+        chase = [0, 0]
+        
+        if line_two == None: # only left line detected, set distance, will select based on axis
+            
+        
+            pass
+        elif line_one == None: # only right line detected
+
+            # return same x +- offset
+            pass
+        else: # both lines, mean
+            
+            chase = midpoint_formula()
+            pass
+
+        return chase
+
+        
 
     def pixel_to_world(self, i, j):
         """
@@ -70,11 +120,16 @@ class HomographyTransformer:
         y = homogeneous_xy[1, 0]
         return (x, y)
 
-    def transform_to_base_link(self):
-        pass
-
-    def publish_lookahead_point(self):
-        pass
+    def transform_to_base_link(self, point):
+        """
+        Takes a PointStamped message and transforms it from the its frame_id frame
+        into the base_link frame.
+        """
+        try:
+            point_transformed = self.tf_buffer.transform(point, "base_link", rospy.Duration(0.1))
+            return point_transformed
+        except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
+            raise
 
 
 if __name__ == "__main__":
