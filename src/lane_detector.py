@@ -172,6 +172,9 @@ class LaneDetector:
                 return [None, (x_lane_1,y_return)]
             
         self.lane_pub.publish(msg)
+<<<<<<< HEAD
+>>>>>>> 82c97ded6ae7593807d2fc8ef4b346514017f6ad
+=======
 >>>>>>> 82c97ded6ae7593807d2fc8ef4b346514017f6ad
 
 
