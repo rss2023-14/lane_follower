@@ -5,6 +5,7 @@ import numpy as np
 import cv2 as cv
 
 from geometry_msgs.msg import PointStamped, TransformStamped, PoseArray, Pose
+from std_msgs.msg import Header
 
 class LaneDetector:
     """
@@ -95,7 +96,7 @@ class LaneDetector:
 
         msg = PoseArray()
         msg.header = Header()
-        msg.header.frame_id = "car" # TODO: car? what is this, left camera sensor
+        msg.header.frame_id = "frame_id" # TODO: car? what is this, left camera sensor
         
         y_return =  int(np.floor(height * self.LOOKAHEAD_HOMOGRAPHY )) # = 0.9, feel free to change back for local testing
         if len(filtered_lines) == 2:

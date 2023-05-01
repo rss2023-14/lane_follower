@@ -7,6 +7,7 @@ import tf2_ros
 
 from geometry_msgs.msg import PointStamped, TransformStamped, PoseArray
 from visualization_msgs.msg import Marker
+from std_msgs.msg import Header
 import tf2_geometry_msgs
 
 ##############################################
@@ -63,6 +64,9 @@ class HomographyTransformer:
         self.tf_buffer = tf2_ros.Buffer()
         self.listener = tf2_ros.TransformListener(self.tf_buffer)
 
+        # set offset for 
+        self.SINGLE_LANE_OFFSET = rospy.get_param("single_lane_offset", 5.0) # can change rosparam here
+
         # Take lane messages, publish lookahead points
         LOOKAHEAD_TOPIC = rospy.get_param("lookahead_topic")
         LANE_TOPIC = rospy.get_param("lane_topic")
@@ -72,7 +76,7 @@ class HomographyTransformer:
     def find_lookahead_point(self, msg):
         """
         using points from two lines, return a point for the car to go 
-        to in the pixel frame in the form (x, y)
+        to in the pixel frame 
         """
 
         def line_equation(line, x):
@@ -83,31 +87,51 @@ class HomographyTransformer:
             x = (x1 + x2)/2
             y = (y1 + y2)/2
             return (x, y)
+    
+        line_one, line_two = msg # msg should be a 2 element array of lines in the form [(x_lane_1,y_return),(x_lane_2,y_return)] (x, y)
         
-        x = msg.poses.position.x
-        y = msg.poses.position.y
-
-        # subscribe to topic that is publishing the lines in the in lane detector
-        # lines are in the form [(x_lane_1,y_return),(x_lane_2,y_return)] (x, y)
-        line_one, line_two = returnObject # msg.line_one.x, msg.line_one.y, msg.line_two.x, msg.line_two.y
-
-        chase = [0, 0]
-        
-        if line_two == None: # only left line detected, set distance, will select based on axis
+        if line_two is None: # only left line detected, set distance, will select based on axis
+            x1 = line_one.position.x
+            y1 = line_one.position.y
+            line_one_real_world = self.pixel_to_world(x1, y1)
             
-        
-            pass
-        elif line_one == None: # only right line detected
+            to_chase = PointStamped()
+            to_chase.header = Header()
+            to_chase.header.frame_id = "frame_id" # TODO
+            to_chase.point.x = line_one_real_world[0] + self.SINGLE_LANE_OFFSET
+            to_chase.point.y = line_one_real_world[1]
 
-            # return same x +- offset
-            pass
+            
+        elif line_one is None: # only right line detected
+            x2 = line_two.position.x
+            y2 = line_two.position.y
+            line_two_real_world = self.pixel_to_world(x2, y2)
+            
+            to_chase = PointStamped()
+            to_chase.header = Header()
+            to_chase.header.frame_id = "frame_id" # TODO
+            to_chase.point.x = line_two_real_world[0] - self.SINGLE_LANE_OFFSET
+            to_chase.point.y = line_two_real_world[1]
+            
+            
         else: # both lines, mean
+            x1 = line_one.position.x
+            y1 = line_one.position.y
+            x2 = line_two.position.x
+            y2 = line_two.position.y
+            line_one_real_world = self.pixel_to_world(x1, y1)
+            line_two_real_world = self.pixel_to_world(x2, y2)
+            midpoint = midpoint_formula(line_one_real_world[0], line_one_real_world[1], line_two_real_world[0], line_two_real_world[1])
             
-            
-            pass
+            to_chase = PointStamped()
+            to_chase.header = Header()
+            to_chase.header.frame_id = "frame_id" # TODO
+            to_chase.point.x = midpoint[0]
+            to_chase.point.y = midpoint[1]
 
-        return chase
+        to_return = self.transform_to_base_link(to_chase)
 
+        self.lookahead_pub.publish(to_return)
         
 
     def pixel_to_world(self, i, j):
