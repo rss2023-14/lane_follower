@@ -101,7 +101,7 @@ class LaneDetector:
             x_lane_2 = (y_return-b)/m_2
             # x_return = int(np.floor((x_lane_1+x_lane_2)/2))
             # cv.circle(img, (x_return,y_return), 5, (0, 0, 255), -1)
-            if m_1 > 0:
+            if m_1 < 0:
                 self.prev_line_locations = [filtered_lines[0],filtered_lines[1]]
                 return [(x_lane_1,y_return),(x_lane_2,y_return)]
             else:
