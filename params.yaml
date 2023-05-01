@@ -17,3 +17,5 @@ ignore_close_distance: 0.1
 # topics
 drive_topic: /drive
 odom_topic: /odom
+lane_topic: /lane
+lookahead_topic: /lookaheadpoint
