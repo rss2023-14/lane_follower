@@ -111,26 +111,30 @@ class LaneDetector:
         elif len(filtered_lines) == 1:
             x1,y1,x2,y2 = filtered_lines[0]
             m_1 = (y2-y1)/(x2-x1)
-            b = y1 - m_2*x1
+            b = y1 - m_1*x1
             x_lane_1 = (y_return-b)/m_1
-            if None in self.prev_line_locations:
-                idx_none = self.prev_line_locations.index(None)
-                if idx_none == 0:
-                    self.prev_line_locations = [None, filtered_lines[0]]
-                    return [None, (x_lane_1,y_return)]
-                else:
-                    self.prev_line_locations = [filtered_lines[0],None]
-                    return [(x_lane_1,y_return), None]
-            left_lane = self.prev_line_locations[0]
-            right_lane = self.prev_line_locations[1]
-            dist_left = abs(left_lane[0]-x1)+abs(left_lane[1]-y1)+abs(left_lane[2]-x2)+abs(left_lane[3]-y2)
-            dist_right = abs(right_lane[0]-x1)+abs(right_lane[1]-y1)+abs(right_lane[2]-x2)+abs(right_lane[3]-y2)
-            if dist_left < dist_right:
-                self.prev_line_locations = [filtered_lines[0],None]
-                return [(x_lane_1,y_return), None]  
-            else:
-                self.prev_line_locations = [None, filtered_lines[0]]
+            # if None in self.prev_line_locations:
+            #     idx_none = self.prev_line_locations.index(None)
+            #     if idx_none == 0:
+            #         self.prev_line_locations = [None, filtered_lines[0]]
+            #         return [None, (x_lane_1,y_return)]
+            #     else:
+            #         self.prev_line_locations = [filtered_lines[0],None]
+            #         return [(x_lane_1,y_return), None]
+            # left_lane = self.prev_line_locations[0]
+            # right_lane = self.prev_line_locations[1]
+            # dist_left = abs(left_lane[0]-x1)+abs(left_lane[1]-y1)+abs(left_lane[2]-x2)+abs(left_lane[3]-y2)
+            # dist_right = abs(right_lane[0]-x1)+abs(right_lane[1]-y1)+abs(right_lane[2]-x2)+abs(right_lane[3]-y2)
+            # if dist_left < dist_right:
+            #     self.prev_line_locations = [filtered_lines[0],None]
+            #     return [(x_lane_1,y_return), None]  
+            # else:
+            #     self.prev_line_locations = [None, filtered_lines[0]]
+            #     return [None, (x_lane_1,y_return)]
+            if m_1 > 0:
                 return [None, (x_lane_1,y_return)]
+            else:
+                return [(x_lane_1,y_return), None]
 
 
         #more visualization
