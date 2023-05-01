@@ -64,7 +64,7 @@ class HomographyTransformer:
         self.tf_buffer = tf2_ros.Buffer()
         self.listener = tf2_ros.TransformListener(self.tf_buffer)
 
-        # set offset for 
+        # set offset for instances where only one line was foud
         self.SINGLE_LANE_OFFSET = rospy.get_param("single_lane_offset", 5.0) # can change rosparam here
 
         # Take lane messages, publish lookahead points
