@@ -97,7 +97,7 @@ class HomographyTransformer:
             
             to_chase = PointStamped()
             to_chase.header = Header()
-            to_chase.header.frame_id = "frame_id" # TODO
+            to_chase.header.frame_id = "left_zed_camera"
             to_chase.point.x = line_one_real_world[0]
             to_chase.point.y = line_one_real_world[1]
 
@@ -109,7 +109,7 @@ class HomographyTransformer:
             
             to_chase = PointStamped()
             to_chase.header = Header()
-            to_chase.header.frame_id = "frame_id" # TODO
+            to_chase.header.frame_id = "left_zed_camera"
             to_chase.point.x = line_two_real_world[0]
             to_chase.point.y = line_two_real_world[1]
             
@@ -125,7 +125,7 @@ class HomographyTransformer:
             
             to_chase = PointStamped()
             to_chase.header = Header()
-            to_chase.header.frame_id = "frame_id" # TODO
+            to_chase.header.frame_id = "left_zed_camera"
             to_chase.point.x = midpoint[0]
             to_chase.point.y = midpoint[1]
 
