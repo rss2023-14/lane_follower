@@ -16,12 +16,13 @@ class PursuitController():
 
     def __init__(self):
         # set in launch file; different for simulator vs racecar
-        DRIVE_TOPIC = rospy.get_param("drive_topic", "/drive")
         ODOM_TOPIC = rospy.get_param("odom_topic", "/pf/pose/odom")
+        DRIVE_TOPIC = rospy.get_param("drive_topic", "/drive")
+        LOOKAHEAD_TOPIC = rospy.get_param("lookahead_topic")
 
         self.odom_sub = rospy.Subscriber(ODOM_TOPIC, Odometry, self.odom_callback)
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size=1)
-        self.lookahead_sub = rospy.Subscriber("/lookaheadpoint", PointStamped, self.look_ahead_callback)
+        self.lookahead_sub = rospy.Subscriber(LOOKAHEAD_TOPIC, PointStamped, self.look_ahead_callback)
 
         # Controller parameters
         self.SPEED = rospy.get_param("speed", 2.0)
@@ -131,3 +132,8 @@ class PursuitController():
         self.error_pub_dist.publish(error_dist)
         self.error_pub_head.publish(error_head)
         self.error_pub_avgdist.publish(error_avgdist)
+
+if __name__ == "__main__":
+    rospy.init_node("pure_pursuit")
+    pp = PursuitController()
+    rospy.spin()
