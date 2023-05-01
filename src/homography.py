@@ -5,7 +5,7 @@ import numpy as np
 import cv2
 import tf2_ros
 
-from geometry_msgs.msg import PoseStamped, TransformStamped
+from geometry_msgs.msg import PointStamped, TransformStamped
 from visualization_msgs.msg import Marker
 import tf2_geometry_msgs
 
@@ -63,7 +63,16 @@ class HomographyTransformer:
         self.tf_buffer = tf2_ros.Buffer()
         self.listener = tf2_ros.TransformListener(self.tf_buffer)
 
+        # Take lane messages, publish lookahead points
+        LOOKAHEAD_TOPIC = rospy.get_param("lookahead_topic")
+        LANE_TOPIC = rospy.get_param("lane_topic")
+        self.lookahead_pub = rospy.Publisher(LOOKAHEAD_TOPIC, PointStamped, queue_size=1)
+        self.lane_sub = rospy.Subscriber(LANE_TOPIC, PointStamped, queue_size=1) # TODO: Change message type
+
     def find_lookahead_point(self):
+        """
+        TODO
+        """
         pass
 
     def pixel_to_world(self, i, j):
@@ -78,19 +87,16 @@ class HomographyTransformer:
         y = homogeneous_xy[1, 0]
         return (x, y)
 
-    def transform_to_base_link(self, pose):
+    def transform_to_base_link(self, point):
         """
-        Takes a PoseStamped message and transforms it from the its frame_id frame
-        into the left_zed_camera frame.
+        Takes a PointStamped message and transforms it from the its frame_id frame
+        into the base_link frame.
         """
         try:
-            pose_transformed = self.tf_buffer.transform(pose, "left_zed_camera", rospy.Duration(0.1))
-            return pose_transformed
+            point_transformed = self.tf_buffer.transform(point, "base_link", rospy.Duration(0.1))
+            return point_transformed
         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
             raise
-
-    def publish_lookahead_point(self):
-        pass
 
 
 if __name__ == "__main__":
