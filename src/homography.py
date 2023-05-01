@@ -88,7 +88,7 @@ class HomographyTransformer:
             y = (y1 + y2)/2
             return (x, y)
     
-        line_one, line_two = msg # msg should be a 2 element array of lines in the form [(x_lane_1,y_return),(x_lane_2,y_return)] (x, y)
+        line_one, line_two = msg.poses # msg should be a 2 element array of lines in the form [(x_lane_1,y_return),(x_lane_2,y_return)] (x, y)
         
         if line_two is None: # only left line detected, set distance, will select based on axis
             x1 = line_one.position.x + self.SINGLE_LANE_OFFSET
@@ -133,9 +133,9 @@ class HomographyTransformer:
         self.lookahead_pub.publish(to_return)
         
 
-    def pixel_to_world(self, i, j):
+    def pixel_to_world(self, u, v):
         """
-        Takes pixel coordinates (i,j) and returns world frame coordinates (x,y) in meters.
+        Takes pixel coordinates (u,v) and returns world frame coordinates (x,y) in meters.
         """
         homogeneous_point = np.array([[u], [v], [1]])
         xy = np.dot(self.h, homogeneous_point)

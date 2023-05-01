@@ -5,6 +5,7 @@
 	<rosparam command="load" file="$(find lane_follower)/params.yaml"/>
 
 	<!-- Begin lane detection and parsing -->
+	<include file="$(find zed_wrapper)/launch/zed.launch"/>
 	<node name="lane_detector" pkg="lane_follower" type="lane_detector.py" output="screen"/>
 	<node name="left_camera_tf_broadcaster" pkg="tf2_ros" type="static_transform_publisher"
 		args="0.01 -0.09 0.15 0 0 0 1 laser left_zed_camera"/>

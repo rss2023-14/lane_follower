@@ -1,9 +1,11 @@
+#!/usr/bin/env python
+
 import rospy
 import numpy as np
 
 from std_msgs.msg import Float64
 from ackermann_msgs.msg import AckermannDriveStamped
-from geometry_msgs.msg import PointStamped
+from geometry_msgs.msg import PointStamped, Pose
 from nav_msgs.msg import Odometry
 import tf.transformations as tf
 
@@ -16,11 +18,11 @@ class PursuitController():
 
     def __init__(self):
         # set in launch file; different for simulator vs racecar
-        ODOM_TOPIC = rospy.get_param("odom_topic", "/pf/pose/odom")
+        # ODOM_TOPIC = rospy.get_param("odom_topic", "/pf/pose/odom")
         DRIVE_TOPIC = rospy.get_param("drive_topic", "/drive")
         LOOKAHEAD_TOPIC = rospy.get_param("lookahead_topic")
 
-        self.odom_sub = rospy.Subscriber(ODOM_TOPIC, Odometry, self.odom_callback)
+        # self.odom_sub = rospy.Subscriber(ODOM_TOPIC, Odometry, self.odom_callback)
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size=1)
         self.lookahead_sub = rospy.Subscriber(LOOKAHEAD_TOPIC, PointStamped, self.look_ahead_callback)
 
@@ -41,7 +43,7 @@ class PursuitController():
 
         self.running_theta_err = 0.0
         self.running_dist_err = 0.0
-        self.pose = None
+        self.pose = Pose()
 
         # Error metrics
         self.PUBLISH_METRICS = rospy.get_param("~publish_metrics", False)
@@ -54,15 +56,16 @@ class PursuitController():
             self.avg_dist_err = 0.0
             self.total_time = 0.0
 
-    def odom_callback(self, msg):
-        self.pose = msg.pose.pose
+    # def odom_callback(self, msg):
+    #     self.pose = msg.pose.pose
 
     def look_ahead_callback(self, msg):
         time = rospy.Time.now()
 
         dt = (time - self.prev_time).to_sec()
         self.dt = dt
-        self.total_time += dt
+        if self.PUBLISH_METRICS:
+            self.total_time += dt
 
         self.prev_time = time
 

@@ -105,7 +105,7 @@ class SafetyController:
                 self.pub.publish(msg)
                 return
 
-    def get_range_index(angle, lidar_msg):
+    def get_range_index(self, angle, lidar_msg):
         return int((angle - lidar_msg.angle_min) / lidar_msg.angle_increment)
 
 

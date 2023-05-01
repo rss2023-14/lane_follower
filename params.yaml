@@ -12,7 +12,6 @@ lookahead_distance_homog: 0.9
 # homography parameters
 single_lane_offset: 5.0
 
-
 # safety controller parameters
 look_ahead_time: 0.5
 half_car_width: 0.2
@@ -20,6 +19,7 @@ ignore_close_distance: 0.1
 
 # topics
 drive_topic: /drive
+# drive_topic: /vesc/ackermann_cmd_mux/input/navigation
 odom_topic: /odom
 lane_topic: /lane
 lookahead_topic: /lookaheadpoint
