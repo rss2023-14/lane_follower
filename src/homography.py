@@ -3,9 +3,11 @@
 import rospy
 import numpy as np
 import cv2
+import tf2_ros
 
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, TransformStamped
 from visualization_msgs.msg import Marker
+import tf2_geometry_msgs
 
 ##############################################
 # pixels (i,j), images taken from left camera sensor
@@ -29,6 +31,8 @@ PTS_GROUND_PLANE = [[15.5,   4.0],
                     [24.5,  -16.0],
                     [41.75,  2.25],
                     [39.5,  -8.0]]
+
+METERS_PER_INCH = 0.0254
 ##############################################
 
 class HomographyTransformer:
@@ -55,6 +59,10 @@ class HomographyTransformer:
 
         self.h, err = cv2.findHomography(np_pts_image, np_pts_ground)
 
+        # Prepare for transforms between base_link and left_zed_camera
+        self.tf_buffer = tf2_ros.Buffer()
+        self.listener = tf2_ros.TransformListener(self.tf_buffer)
+
     def find_lookahead_point(self):
         pass
 
@@ -70,8 +78,16 @@ class HomographyTransformer:
         y = homogeneous_xy[1, 0]
         return (x, y)
 
-    def transform_to_base_link(self):
-        pass
+    def transform_to_base_link(self, pose):
+        """
+        Takes a PoseStamped message and transforms it from the its frame_id frame
+        into the left_zed_camera frame.
+        """
+        try:
+            pose_transformed = self.tf_buffer.transform(pose, "left_zed_camera", rospy.Duration(0.1))
+            return pose_transformed
+        except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
+            raise
 
     def publish_lookahead_point(self):
         pass
