@@ -118,8 +118,10 @@ class LaneDetector:
             x_lane_1 = (y_return-b)/m_1
 
             if m_1 > 0:
+                msg.poses = [None, Pose(x_lane_1,y_return)]
                 return [None, (x_lane_1,y_return)]
             else:
+                msg.poses = [Pose(x_lane_1,y_return), None]
                 return [(x_lane_1,y_return), None]
 
         else:
