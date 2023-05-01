@@ -71,7 +71,7 @@ class HomographyTransformer:
         LOOKAHEAD_TOPIC = rospy.get_param("lookahead_topic")
         LANE_TOPIC = rospy.get_param("lane_topic")
         self.lookahead_pub = rospy.Publisher(LOOKAHEAD_TOPIC, PointStamped, queue_size=1)
-        self.lane_sub = rospy.Subscriber(LANE_TOPIC, PoseArray, self.find_lookahead_point, queue_size=1) # TODO: Change message type
+        self.lane_sub = rospy.Subscriber(LANE_TOPIC, PoseArray, self.find_lookahead_point, queue_size=1)
 
     def find_lookahead_point(self, msg):
         """
@@ -129,7 +129,7 @@ class HomographyTransformer:
             to_chase.point.x = midpoint[0]
             to_chase.point.y = midpoint[1]
 
-        to_return = self.transform_to_base_link(to_chase)
+        to_return = self.transform_to_car(to_chase)
         self.lookahead_pub.publish(to_return)
         
 
@@ -145,13 +145,13 @@ class HomographyTransformer:
         y = homogeneous_xy[1, 0]
         return (x, y)
 
-    def transform_to_base_link(self, point):
+    def transform_to_car(self, point):
         """
         Takes a PointStamped message and transforms it from the its frame_id frame
-        into the base_link frame.
+        into the laser frame, which is in front of the car.
         """
         try:
-            point_transformed = self.tf_buffer.transform(point, "base_link", rospy.Duration(0.1))
+            point_transformed = self.tf_buffer.transform(point, "laser", rospy.Duration(0.1))
             return point_transformed
         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
             raise
