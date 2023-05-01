@@ -67,9 +67,13 @@ class HomographyTransformer:
         LOOKAHEAD_TOPIC = rospy.get_param("lookahead_topic")
         LANE_TOPIC = rospy.get_param("lane_topic")
         self.lookahead_pub = rospy.Publisher(LOOKAHEAD_TOPIC, PointStamped, queue_size=1)
-        self.lane_sub = rospy.Subscriber(LANE_TOPIC, PointStamped, queue_size=1) # TODO: Change message type
+        self.lane_sub = rospy.Subscriber(LANE_TOPIC, PointStamped, self.find_lookahead_point, queue_size=1) # TODO: Change message type
 
-    def find_lookahead_point(self):
+    def find_lookahead_point(self, msg):
+        """
+        using points from two lines, return a point for the car to go 
+        to in the pixel frame in the form (x, y)
+        """
 
         def line_equation(line, x):
             y = line[0] * x + line[1]
@@ -83,18 +87,26 @@ class HomographyTransformer:
         self.LOOKAHEAD_HOMOGRAPHY = rospy.get_param("lookahead_distance", 1.0) # can change rosparam here
         # subscribe to topic that is publishing the lines in the in lane detector
         # lines are in the form [(x_lane_1,y_return),(x_lane_2,y_return)] (x, y)
-        line_one, line_two = returnObject
+        line_one, line_two = returnObject # msg.line_one.x, msg.line_one.y, msg.line_two.x, msg.line_two.y
 
-        if line_two == None: # only left line detected
-
+        chase = [0, 0]
+        
+        if line_two == None: # only left line detected, set distance, will select based on axis
+            
+        
             pass
         elif line_one == None: # only right line detected
 
+            # return same x +- offset
             pass
-        else: # both lines
+        else: # both lines, mean
             
+            chase = midpoint_formula()
             pass
 
+        return chase
+
+        
 
     def pixel_to_world(self, i, j):
         """
