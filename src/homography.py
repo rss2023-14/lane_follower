@@ -56,7 +56,31 @@ class HomographyTransformer:
         self.h, err = cv2.findHomography(np_pts_image, np_pts_ground)
 
     def find_lookahead_point(self):
-        pass
+
+        def line_equation(line, x):
+            y = line[0] * x + line[1]
+            return y
+        
+        def midpoint_formula(x1, y1, x2, y2):
+            x = (x1 + x2)/2
+            y = (y1 + y2)/2
+            return (x, y)
+
+        self.LOOKAHEAD_HOMOGRAPHY = rospy.get_param("lookahead_distance", 1.0) # can change rosparam here
+        # subscribe to topic that is publishing the lines in the in lane detector
+        # lines are in the form [(x_lane_1,y_return),(x_lane_2,y_return)] (x, y)
+        line_one, line_two = returnObject
+
+        if line_two == None: # only left line detected
+
+            pass
+        elif line_one == None: # only right line detected
+
+            pass
+        else: # both lines
+            
+            pass
+
 
     def pixel_to_world(self, i, j):
         """
