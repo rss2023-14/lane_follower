@@ -104,10 +104,9 @@ class PursuitController():
 
         drive_cmd.drive.steering_angle = self.Kp * theta_err + \
             self.Kd * d_theta_dt + self.Ki * self.running_theta_err
+        drive_cmd.drive.steering_angle_velocity = 0.025
 
         drive_cmd.drive.speed = self.SPEED
-
-        drive_cmd.drive.steering_angle_velocity = 0.0
         drive_cmd.drive.acceleration = 0.0
         drive_cmd.drive.jerk = 0.0
 

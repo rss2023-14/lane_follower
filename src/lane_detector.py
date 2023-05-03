@@ -52,6 +52,7 @@ class LaneDetector:
         if lines is None:
             rospy.logwarn("No lines found!")
             self.lane_pub.publish(msg)
+            return
 
         # Filter lines based on their angle, aiming for almost vertical lines
         filtered_lines = []
@@ -144,8 +145,8 @@ class LaneDetector:
             x_lane_1 = (y_return-b)/m_1
 
             p1 = Point()
-            p1.position.x = x_lane_1
-            p1.position.y = y_return
+            p1.x = x_lane_1
+            p1.y = y_return
 
             if m_1 > 0:
                 msg.detectedLeft = True
