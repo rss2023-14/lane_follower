@@ -64,8 +64,10 @@ class HomographyTransformer:
         self.tf_buffer = tf2_ros.Buffer()
         self.listener = tf2_ros.TransformListener(self.tf_buffer)
 
-        # set offset for instances where only one line was foud
-        self.SINGLE_LANE_OFFSET = rospy.get_param("single_lane_offset", 50.0)
+        # Set offset for instances where only one line was found
+        self.SINGLE_LANE_OFFSET = rospy.get_param("single_lane_offset")
+        # Distance ahead of car we should find a lookahead point
+        self.LOOKAHEAD_DISTANCE = rospy.get_param("lookahead_distance")
 
         # Take lane messages, publish lookahead points
         LOOKAHEAD_TOPIC = rospy.get_param("lookahead_topic")
@@ -115,10 +117,12 @@ class HomographyTransformer:
             to_chase.point.y = lineRight_world[1]
         else:
             # No lines detected, publish point right in front of car
-            to_chase.point.x = 1.0
+            to_chase.point.x = self.LOOKAHEAD_DISTANCE
             to_chase.point.y = 0.0
 
         to_return = self.transform_to_car(to_chase)
+        rospy.loginfo("Published lookahead point:")
+        rospy.loginfo(to_return)
         self.lookahead_pub.publish(to_return)
 
     def pixel_to_world(self, u, v):
