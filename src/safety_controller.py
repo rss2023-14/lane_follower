@@ -45,9 +45,10 @@ class SafetyController:
             # Early return for uninitialized LaserScan
             return
 
-        # We only care about forward FOV of car (-90 to 90 deg)
-        low_index = self.get_range_index(np.deg2rad(-90), lidar_msg)
-        high_index = self.get_range_index(np.deg2rad(90), lidar_msg)
+        # We only care about forward FOV of car (-80 to 80 deg)
+        # 1.39626 is 80 degrees in radians
+        low_index = self.get_range_index(-1.39626, lidar_msg)
+        high_index = self.get_range_index(1.39626, lidar_msg)
 
         ranges = np.array(lidar_msg.ranges)[low_index:high_index]
         angles = np.arange(
@@ -58,12 +59,14 @@ class SafetyController:
         # Extract turning radius and direction
         if ackermann_msg.drive.steering_angle == 0.0:
             turning_right = 1
-            turning_radius = 1000.0  # ~inf
+            turning_radius = 10000.0  # ~inf
         elif ackermann_msg.drive.steering_angle < 0.0:
             turning_right = 1
+            # 0.35 is wheelbase of car
             turning_radius = abs(0.35 / np.tan(ackermann_msg.drive.steering_angle))
         else:
             turning_right = -1
+            # 0.35 is wheelbase of car
             turning_radius = abs(0.35 / np.tan(ackermann_msg.drive.steering_angle))
 
         max_angle = (self.LOOK_AHEAD_TIME * ackermann_msg.drive.speed) / turning_radius
@@ -76,7 +79,8 @@ class SafetyController:
                 # Filter out erroneous LIDAR points
                 continue
 
-            inner_angle = np.deg2rad(90) - (turning_right * angles[index])
+            # 1.57079633 is 90 degrees in radians
+            inner_angle = 1.57079633 - (turning_right * angles[index])
 
             dist = math.sqrt(
                 range**2.0
