@@ -6,21 +6,21 @@ import cv2 as cv
 from cv_bridge import CvBridge, CvBridgeError
 import copy
 
-from geometry_msgs.msg import PointStamped, TransformStamped, PoseArray, Pose
-from std_msgs.msg import Header
 from sensor_msgs.msg import Image
+from geometry_msgs.msg import Point
+from lane_follower.msg import Lane
 
 class LaneDetector:
     """
-    TODO
+    Take rgb camera input from zed sensor, and attempt to find left and right line corresponding
+    to lane. Publishes Lane msg with this info.
     """
 
     def __init__(self):
-        # self.prev_line_locations = None
-        self.LOOKAHEAD_HOMOGRAPHY = rospy.get_param("lookahead_distance_homog", 0.9) # can change rosparam here
+        self.LOOKAHEAD_HOMOGRAPHY = rospy.get_param("lookahead_distance_homog", 0.9)
 
         LANE_TOPIC = rospy.get_param("lane_topic")
-        self.lane_pub = rospy.Publisher(LANE_TOPIC, PoseArray, queue_size=1)
+        self.lane_pub = rospy.Publisher(LANE_TOPIC, Lane, queue_size=1)
 
         # For zed camera
         self.bridge = CvBridge()
@@ -28,16 +28,15 @@ class LaneDetector:
 
     def detect_lane(self,image):
         img = self.bridge.imgmsg_to_cv2(image, "bgr8")
-        # img = cv.imread(image)
 
-        # mask top half of image
+        # Mask top half of image
         top_half_mask = np.zeros_like(img)
         height = img.shape[0]
         height_part = int(np.floor(height*0.5))
         top_half_mask[height_part:,:] = 255
         blacked_img = cv.bitwise_and(img,top_half_mask)
 
-        # grayscale and blur image to get the edges 
+        # Grayscale and blur image to get the edges 
         gray_img = cv.cvtColor(blacked_img,cv.COLOR_BGR2GRAY)
         blur = cv.GaussianBlur(gray_img,(5,5),0)
         edges = cv.Canny(blur,50, 150, apertureSize=3)
@@ -45,12 +44,16 @@ class LaneDetector:
         # Get the lines from opencv
         lines = cv.HoughLinesP(edges,rho=1,theta=np.pi/180,threshold=50, minLineLength=150,maxLineGap=10)
 
+        msg = Lane()
+        msg.header.stamp = rospy.Time.now()
+        msg.header.frame_id = "left_zed_camera"
+
         # Check that there are lines found
         if lines is None:
             rospy.logwarn("No lines found!")
-            return
+            self.lane_pub.publish(msg)
 
-        # filter lines based on their angle, aiming for almost vertical lines
+        # Filter lines based on their angle, aiming for almost vertical lines
         filtered_lines = []
         for line in lines:
             x1,y1,x2,y2 = line[0]
@@ -61,10 +64,11 @@ class LaneDetector:
             else:
                 filtered_lines.append(list(line[0]))
                     
-        #filter lines again, this time to try to get a single line per lane
-
-        #basically, I am checking all the lines to see if there are lines which have very similar slopes, and if so,
-        # I am deleting the ones which have similar slopes and are further from the center of the image.
+        """
+        Filter lines again, this time to try to get a single line per lane.
+        Basically, I am checking all the lines to see if there are lines which have very similar slopes, and if so,
+        I am deleting the ones which have similar slopes and are further from the center of the image.
+        """
         slope_tracker = {}
         copy_filt = copy.deepcopy(filtered_lines)
         for line in copy_filt:
@@ -94,59 +98,65 @@ class LaneDetector:
                 continue
             slope_tracker[slope] = line
 
-            
-        # print(slope_tracker)
-        #This is mostly for visualization on the images, won't be needed in the actual function.
-        #however, i do construct the line equations here, which we may want to do pre homography
-
-        msg = PoseArray()
-        msg.header.stamp = rospy.Time.now()
-        msg.header.frame_id = "left_zed_camera"
+        """
+        # This is mostly for visualization on the images, won't be needed in the actual function,
+        # however, I do construct the line equations here, which we may want to do pre homography.
+        print(slope_tracker)
+        """
         
-        y_return =  int(np.floor(height * self.LOOKAHEAD_HOMOGRAPHY )) # = 0.9, feel free to change back for local testing
+        y_return =  int(np.floor(height * self.LOOKAHEAD_HOMOGRAPHY))
         if len(filtered_lines) == 2:
+            # Publish both lines
             x1,y1,x2,y2 = filtered_lines[0]
             m_1 = float(y2-y1)/(x2-x1)
             b = y1 - m_1*x1
             x_lane_1 = (y_return-b)/m_1
+
             x1,y1,x2,y2 = filtered_lines[1]
             m_2 = float(y2-y1)/(x2-x1)
             b = y1 - m_2*x1
             x_lane_2 = (y_return-b)/m_2
+
             # x_return = int(np.floor((x_lane_1+x_lane_2)/2))
             # cv.circle(img, (x_return,y_return), 5, (0, 0, 255), -1)
-            p1 = Pose()
-            p1.position.x = x_lane_1
-            p1.position.y = y_return
-            p2 = Pose()
-            p2.position.x = x_lane_2
-            p2.position.y = y_return
+
+            p1 = Point()
+            p1.x = x_lane_1
+            p1.y = y_return
+            p2 = Point()
+            p2.x = x_lane_2
+            p2.y = y_return
+
+            msg.detectedLeft = True
+            msg.detectedRight = True
             if m_1 < 0:
-                msg.poses = [p1, p2]
+                msg.lineLeft = p1
+                msg.lineRight = p2
             else:
-                msg.poses = [p2, p1]
+                msg.lineLeft = p2
+                msg.lineRight = p1
 
         elif len(filtered_lines) == 1:
+            # Publish only one line
             x1,y1,x2,y2 = filtered_lines[0]
             m_1 = (y2-y1)/(x2-x1)
             b = y1 - m_1*x1
             x_lane_1 = (y_return-b)/m_1
 
-            p1 = Pose()
+            p1 = Point()
             p1.position.x = x_lane_1
             p1.position.y = y_return
 
-            # TODO: FIX THIS!!!
-
             if m_1 > 0:
-                msg.poses = [p1]
-                # msg.poses = [None, p1]
+                msg.detectedLeft = True
+                msg.lineLeft = p1
             else:
-                msg.poses = [p1]
-                # msg.poses = [p1, None]
+                msg.detectedRight = True
+                msg.lineRight = p1
 
         else:
-            rospy.logerr("Either no lines or more than 2 lines found!")
+            rospy.logwarn("Too many (" + str(len(filtered_lines)) + ") lines found!")
+            rospy.logwarn("Should we publish first 2 lines or none?")
 
         self.lane_pub.publish(msg)
 
@@ -191,13 +201,12 @@ class LaneDetector:
 
 
 
-    ##IDEAS
-    # REturn line locations after first call back, use these to see where we at
-
-    # make the line, return it, next time if theres only one, we peep if that one is close by the previous
-
-    # I think homography needs to do the mean of the lines, the pixel mean is probably not accurate for  shit
-
+    # IDEAS
+    """
+    # Rrturn line locations after first call back, use these to see where we at
+    # Make the line, return it, next time if theres only one, we peep if that one is close by the previous
+    # I think homography needs to do the mean of the lines, the pixel mean is probably not accurate for shit
+    """
 
 if __name__ == "__main__":
     rospy.init_node("lane_detector")

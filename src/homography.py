@@ -5,9 +5,9 @@ import numpy as np
 import cv2
 import tf2_ros
 
-from geometry_msgs.msg import PointStamped, TransformStamped, PoseArray
+from geometry_msgs.msg import PointStamped, TransformStamped
+from lane_follower.msg import Lane
 from visualization_msgs.msg import Marker
-from std_msgs.msg import Header
 import tf2_geometry_msgs
 
 ##############################################
@@ -65,73 +65,61 @@ class HomographyTransformer:
         self.listener = tf2_ros.TransformListener(self.tf_buffer)
 
         # set offset for instances where only one line was foud
-        self.SINGLE_LANE_OFFSET = rospy.get_param("single_lane_offset", 5.0) # can change rosparam here
+        self.SINGLE_LANE_OFFSET = rospy.get_param("single_lane_offset", 5.0)
 
         # Take lane messages, publish lookahead points
         LOOKAHEAD_TOPIC = rospy.get_param("lookahead_topic")
         LANE_TOPIC = rospy.get_param("lane_topic")
         self.lookahead_pub = rospy.Publisher(LOOKAHEAD_TOPIC, PointStamped, queue_size=1)
-        self.lane_sub = rospy.Subscriber(LANE_TOPIC, PoseArray, self.find_lookahead_point, queue_size=1)
+        self.lane_sub = rospy.Subscriber(LANE_TOPIC, Lane, self.find_lookahead_point, queue_size=1)
 
     def find_lookahead_point(self, msg):
         """
-        using points from two lines, return a point for the car to go 
-        to in the pixel frame 
+        Using points from two lines, return a point for the car to chase in the world frame.
         """
-
-        def line_equation(line, x):
-            y = line[0] * x + line[1]
-            return y
-        
         def midpoint_formula(x1, y1, x2, y2):
             x = (x1 + x2)/2
             y = (y1 + y2)/2
             return (x, y)
-    
-        line_one, line_two = msg.poses # msg should be a 2 element array of lines in the form [(x_lane_1,y_return),(x_lane_2,y_return)] (x, y)
-        
-        if line_two is None: # only left line detected, set distance, will select based on axis
-            x1 = line_one.position.x + self.SINGLE_LANE_OFFSET
-            y1 = line_one.position.y
-            line_one_real_world = self.pixel_to_world(x1, y1)
-            
-            to_chase = PointStamped()
-            to_chase.header = Header()
-            to_chase.header.frame_id = "left_zed_camera"
-            to_chase.point.x = line_one_real_world[0]
-            to_chase.point.y = line_one_real_world[1]
 
-            
-        elif line_one is None: # only right line detected
-            x2 = line_two.position.x - self.SINGLE_LANE_OFFSET
-            y2 = line_two.position.y
-            line_two_real_world = self.pixel_to_world(x2, y2)
-            
-            to_chase = PointStamped()
-            to_chase.header = Header()
-            to_chase.header.frame_id = "left_zed_camera"
-            to_chase.point.x = line_two_real_world[0]
-            to_chase.point.y = line_two_real_world[1]
-            
-            
-        else: # both lines, mean
-            x1 = line_one.position.x
-            y1 = line_one.position.y
-            x2 = line_two.position.x
-            y2 = line_two.position.y
-            line_one_real_world = self.pixel_to_world(x1, y1)
-            line_two_real_world = self.pixel_to_world(x2, y2)
-            midpoint = midpoint_formula(line_one_real_world[0], line_one_real_world[1], line_two_real_world[0], line_two_real_world[1])
-            
-            to_chase = PointStamped()
-            to_chase.header = Header()
-            to_chase.header.frame_id = "left_zed_camera"
+        to_chase = PointStamped()
+        to_chase.header.stamp = rospy.Time.now()
+        to_chase.header.frame_id = "left_zed_camera"    
+        if msg.detectedLeft and msg.detectedRight:
+            # Both lines detected
+            x1 = msg.lineLeft.x
+            y1 = msg.lineLeft.y
+            x2 = msg.lineRight.x
+            y2 = msg.lineRight.y
+            lineLeft_world = self.pixel_to_world(x1, y1)
+            lineRight_world = self.pixel_to_world(x2, y2)
+            midpoint = midpoint_formula(lineLeft_world[0], lineLeft_world[1], lineRight_world[0], lineRight_world[1])
+
             to_chase.point.x = midpoint[0]
             to_chase.point.y = midpoint[1]
+        elif msg.detectedLeft:
+            # Only left line detected
+            x1 = msg.lineLeft.x
+            y1 = msg.lineLeft.y - self.SINGLE_LANE_OFFSET
+            lineLeft_world = self.pixel_to_world(x1, y1)
+
+            to_chase.point.x = lineLeft_world[0]
+            to_chase.point.y = lineLeft_world[1]
+        elif msg.detectedRight:
+            # Only right line detected
+            x2 = msg.lineRight.x
+            y2 = msg.lineRight.y + self.SINGLE_LANE_OFFSET
+            lineRight_world = self.pixel_to_world(x2, y2)
+
+            to_chase.point.x = lineRight_world[0]
+            to_chase.point.y = lineRight_world[1]
+        else:
+            # No lines detected, publish point right in front of car
+            to_chase.point.x = 1.0
+            to_chase.point.y = 0.0
 
         to_return = self.transform_to_car(to_chase)
         self.lookahead_pub.publish(to_return)
-        
 
     def pixel_to_world(self, u, v):
         """
