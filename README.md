@@ -4,13 +4,11 @@ This is 2023 RSS Team 14's repo for the final challenge part A.
 
 ### TODO
 
-1. Coordinate node published/subscribed messages
-2. Account for lane detection errors: store last known lane location? map lanes in world frame? idk
-3. Add homography function or node
-4. Change pure_pursuit topics/inputs (no longer using published trajectory)
-5. Fix safety controller error on car
-6. Make sure safety controller doesn't stop car when close to other cars
-7. What is a Hough transform and should we use it?
+1. Test lane following at Johnson
+2. Test errors in lane detection (only 1 line, no lines, or more than 2 lines detected)
+3. Tune pure pursuit
+4. Make sure safety controller doesn't stop car when close to other cars
+5. Make the briefing!!
 
 ##
 
