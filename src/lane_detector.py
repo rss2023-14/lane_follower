@@ -38,7 +38,8 @@ class LaneDetector:
 
         # Grayscale and blur image to get the edges 
         gray_img = cv.cvtColor(blacked_img,cv.COLOR_BGR2GRAY)
-        blur = cv.GaussianBlur(gray_img,(5,5),0)
+        white_thresh = cv.threshold(gray_img,150,255,cv.THRESH_BINARY)[1]
+        blur = cv.GaussianBlur(white_thresh,(5,5),0)
         edges = cv.Canny(blur,50, 150, apertureSize=3)
 
         # Get the lines from opencv
@@ -79,7 +80,7 @@ class LaneDetector:
             if slope_tracker != {}:
                 copy_slopes = copy.deepcopy(slope_tracker)
                 for oth_slope in copy_slopes.keys():
-                    if abs(slope-oth_slope) < 0.15:
+                    if abs(slope-oth_slope) < 0.20:
                         if slope < 0:
                             if x1 < slope_tracker[oth_slope][0]:
                                 filtered_lines.remove(slope_tracker[oth_slope])
