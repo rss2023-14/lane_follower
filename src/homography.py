@@ -121,6 +121,13 @@ class HomographyTransformer:
             to_chase.point.x = self.LOOKAHEAD_DISTANCE
             to_chase.point.y = 0.0
 
+        """
+        DEBUGGING, pixel in direct middle of image
+        """
+        # x, y = self.pixel_to_world(672/2.0 + 50, 0.8*376)
+        # to_chase.point.x = x
+        # to_chase.point.y = y
+
         to_return = self.transform_to_car(to_chase)
         to_return.point.x = self.LOOKAHEAD_DISTANCE
         self.lookahead_pub.publish(to_return)

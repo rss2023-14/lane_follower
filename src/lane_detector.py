@@ -60,7 +60,7 @@ class LaneDetector:
         for line in lines:
             x1,y1,x2,y2 = line[0]
             # angle = np.arctan2(y2-y1, x2-x1) * 180 / np.pi
-            if abs(y1-y2) < 50:
+            if abs(y1-y2) < 40:
                 continue
             # if abs(angle) < 30: # vertical lines
             else:
@@ -105,6 +105,7 @@ class LaneDetector:
         # however, I do construct the line equations here, which we may want to do pre homography.
         print(slope_tracker)
         """
+        rospy.loginfo(str(len(filtered_lines)) + " lines found.")
         
         y_return =  int(np.floor(height * self.LOOKAHEAD_HOMOGRAPHY))
         if len(filtered_lines) == 2:
@@ -155,10 +156,6 @@ class LaneDetector:
             else:
                 msg.detectedRight = True
                 msg.lineRight = p1
-
-        else:
-            rospy.logwarn("Too many (" + str(len(filtered_lines)) + ") lines found!")
-            rospy.logwarn("Should we publish first 2 lines or none?")
 
         self.lane_pub.publish(msg)
 
