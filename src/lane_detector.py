@@ -70,8 +70,9 @@ class LaneDetector:
         filtered_lines = []
         for line in lines:
             x1, y1, x2, y2 = line[0]
+            slope = (y2 - y1) / (x2 - x1)
             # angle = np.arctan2(y2-y1, x2-x1) * 180 / np.pi
-            if abs(y1 - y2) < 40:
+            if abs(slope) < 0.5:
                 continue
             # if abs(angle) < 30: # vertical lines
             else:
