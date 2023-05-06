@@ -75,7 +75,7 @@ class LaneDetector:
 
             length = ((x1 - x2) ** 2.0 + (y1 - y2) ** 2.0) ** 0.5
             slope = float(y2 - y1) / (x2 - x1)
-            if abs(slope) > 0.25:
+            if abs(slope) > 0.20:
                 slope_lines[slope * length] = line
 
         left = slope_lines[max(slope_lines)]
