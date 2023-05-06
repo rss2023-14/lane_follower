@@ -28,8 +28,9 @@ class SafetyController:
         self.ackermann_sub = message_filters.Subscriber(
             "/vesc/high_level/ackermann_cmd_mux/output", AckermannDriveStamped
         )
-        
-        self.detected_last = False
+
+        self.num_in_row = 0
+        self.num_required = 3
 
         # Initialize safety control publisher
         self.pub = rospy.Publisher(
@@ -96,7 +97,8 @@ class SafetyController:
                 and dist < (turning_radius + self.HALF_CAR_WIDTH)
                 and angle < max_angle
             ):
-                if self.detected_last:
+                self.num_in_row += 1
+                if self.num_in_row >= self.num_required:
                     rospy.loginfo("Safety Controller engaged!")
 
                     msg = AckermannDriveStamped()
@@ -111,10 +113,8 @@ class SafetyController:
 
                     self.pub.publish(msg)
                     return
-                else:
-                    self.detected_last = True
-                    return
-        self.detected_last = False
+                return
+        self.num_in_row = 0
 
     def get_range_index(self, angle, lidar_msg):
         return int((angle - lidar_msg.angle_min) / lidar_msg.angle_increment)
