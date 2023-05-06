@@ -80,7 +80,7 @@ Visualization Manager:
         base_imu_link:
           Value: false
         base_link:
-          Value: false
+          Value: true
         laser:
           Value: true
         left_zed_camera:
@@ -152,7 +152,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.995988368988037
+      Distance: 2.444554567337036
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -167,10 +167,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2553980350494385
+      Pitch: 0.20539899170398712
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.08039862662553787
+      Yaw: 3.2454004287719727
     Saved: ~
 Window Geometry:
   Displays:

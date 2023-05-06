@@ -72,17 +72,17 @@ class LaneDetector:
         filtered_lines = []
         for line in lines:
             x1, y1, x2, y2 = line[0]
-            slope = (y2 - y1) / (x2 - x1)
+            slope = float(y2 - y1) / (x2 - x1)
             # angle = np.arctan2(y2-y1, x2-x1) * 180 / np.pi
-            if abs(slope) < 0.1:
+            if abs(slope) < 0.25:
                 continue
             # if abs(angle) < 30: # vertical lines
             # elif abs(slope) > 0.65: 
             #     continue
             else:
                 filtered_lines.append(list(line[0]))
-                rospy.loginfo(line)
-                rospy.loginfo(slope)
+                # rospy.loginfo(line)
+                # rospy.loginfo(slope)
 
         """
         Filter lines again, this time to try to get a single line per lane.
@@ -93,7 +93,7 @@ class LaneDetector:
         copy_filt = copy.deepcopy(filtered_lines)
         for line in copy_filt:
             x1, y1, x2, y2 = line
-            slope = (y2 - y1) / (x2 - x1)
+            slope = float(y2 - y1) / (x2 - x1)
             get_rid = False
             if slope_tracker != {}:
                 copy_slopes = copy.deepcopy(slope_tracker)
@@ -126,12 +126,14 @@ class LaneDetector:
         rospy.loginfo(str(len(filtered_lines)) + " lines found.")
 
         # Visualize lines on image
+        """
         line_img = img
         for line in filtered_lines:
             x1, y1, x2, y2 = line
             line_img = cv.line(line_img, (x1, y1), (x2, y2), (0,0,255), 2)
         debug_msg = self.bridge.cv2_to_imgmsg(line_img, "bgr8")
         self.debug_pub.publish(debug_msg)
+        """
 
         y_return = int(np.floor(height * self.LOOKAHEAD_HOMOGRAPHY))
         if len(filtered_lines) == 2:

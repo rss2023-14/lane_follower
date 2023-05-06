@@ -147,10 +147,10 @@ class HomographyTransformer:
     def transform_to_car(self, point):
         """
         Takes a PointStamped message and transforms it from the its frame_id frame
-        into the laser frame, which is in front of the car.
+        into the base_link frame, which is where pure pursuit expects it.
         """
         try:
-            point_transformed = self.tf_buffer.transform(point, "laser", rospy.Duration(0.1))
+            point_transformed = self.tf_buffer.transform(point, "base_link", rospy.Duration(0.1))
             return point_transformed
         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
             raise
