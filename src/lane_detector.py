@@ -5,6 +5,7 @@ import numpy as np
 import cv2 as cv
 from cv_bridge import CvBridge, CvBridgeError
 import copy
+
 # from skimage.transform import downscale_local_mean
 
 from sensor_msgs.msg import Image
@@ -68,7 +69,49 @@ class LaneDetector:
             self.lane_pub.publish(msg)
             return
 
+        slope_lines = {}
+        for line in lines:
+            x1, y1, x2, y2 = line[0]
+            slope = float(y2 - y1) / (x2 - x1)
+            slope_lines[slope] = line
+
+        msg.detectedLeft = True
+        msg.detectedRight = True
+
+        left = slope_lines[max(slope_lines)]
+        right = slope_lines[min(slope_lines)]
+
+        y_return = int(np.floor(height * self.LOOKAHEAD_HOMOGRAPHY))
+
+        x1, y1, x2, y2 = left
+        m_1 = float(y2 - y1) / (x2 - x1)
+        b = y1 - m_1 * x1
+        x_lane_1 = (y_return - b) / m_1
+
+        x1, y1, x2, y2 = right
+        m_2 = float(y2 - y1) / (x2 - x1)
+        b = y1 - m_2 * x1
+        x_lane_2 = (y_return - b) / m_2
+
+        # x_return = int(np.floor((x_lane_1+x_lane_2)/2))
+        # cv.circle(img, (x_return,y_return), 5, (0, 0, 255), -1)
+
+        p1 = Point()
+        p1.x = x_lane_1
+        p1.y = y_return
+        p2 = Point()
+        p2.x = x_lane_2
+        p2.y = y_return
+
+        msg.detectedLeft = True
+        msg.detectedRight = True
+        msg.lineLeft = p1
+        msg.lineRight = p2
+
+        self.lane_pub.publish(msg)
+
         # Filter lines based on their angle, aiming for almost vertical lines
+        """
         filtered_lines = []
         for line in lines:
             x1, y1, x2, y2 = line[0]
@@ -83,11 +126,14 @@ class LaneDetector:
                 filtered_lines.append(list(line[0]))
                 # rospy.loginfo(line)
                 # rospy.loginfo(slope)
+        """
 
         """
         Filter lines again, this time to try to get a single line per lane.
         Basically, I am checking all the lines to see if there are lines which have very similar slopes, and if so,
         I am deleting the ones which have similar slopes and are further from the center of the image.
+        """
+
         """
         slope_tracker = {}
         copy_filt = copy.deepcopy(filtered_lines)
@@ -117,13 +163,13 @@ class LaneDetector:
                 filtered_lines.remove(line)
                 continue
             slope_tracker[slope] = line
-
+        """
         """
         # This is mostly for visualization on the images, won't be needed in the actual function,
         # however, I do construct the line equations here, which we may want to do pre homography.
         print(slope_tracker)
         """
-        rospy.loginfo(str(len(filtered_lines)) + " lines found.")
+        # rospy.loginfo(str(len(filtered_lines)) + " lines found.")
 
         # Visualize lines on image
         """
@@ -134,7 +180,7 @@ class LaneDetector:
         debug_msg = self.bridge.cv2_to_imgmsg(line_img, "bgr8")
         self.debug_pub.publish(debug_msg)
         """
-
+        """
         y_return = int(np.floor(height * self.LOOKAHEAD_HOMOGRAPHY))
         if len(filtered_lines) == 2:
             # Publish both lines
@@ -186,6 +232,8 @@ class LaneDetector:
                 msg.lineRight = p1
 
         self.lane_pub.publish(msg)
+        
+        """
 
         # Changed from keeping track of positions to checking slopes
         """
