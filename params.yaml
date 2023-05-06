@@ -1,7 +1,7 @@
 # pure pursuit parameters
 lookahead_distance: 1.0
 end_threshold: 0.25
-speed: 4.0
+speed: 3.0
 kp: 0.2
 ki: 0.0
 kd: 0.0095

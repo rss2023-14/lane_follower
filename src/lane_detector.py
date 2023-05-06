@@ -20,6 +20,9 @@ class LaneDetector:
     """
 
     def __init__(self):
+        self.skip_every = 3
+        self.counter = 0
+
         self.LOOKAHEAD_HOMOGRAPHY = rospy.get_param("lookahead_distance_homog", 0.9)
 
         LANE_TOPIC = rospy.get_param("lane_topic")
@@ -33,8 +36,13 @@ class LaneDetector:
         self.debug_pub = rospy.Publisher("/debug_img", Image, queue_size=10)
 
     def detect_lane(self, image):
-        # img = downscale_local_mean(self.bridge.imgmsg_to_cv2(image, "bgr8"), (2, 2))
-        img = cv.pyrDown(self.bridge.imgmsg_to_cv2(image, "bgr8"))
+        # if self.counter >= self.skip_every:
+        #     self.counter = 0
+        #     return
+        # self.counter += 1
+
+        # img = cv.pyrDown(self.bridge.imgmsg_to_cv2(image, "bgr8"))
+        img = self.bridge.imgmsg_to_cv2(image, "bgr8")
 
         # Mask top half of image
         top_half_mask = np.zeros_like(img)
@@ -69,6 +77,7 @@ class LaneDetector:
             self.lane_pub.publish(msg)
             return
 
+        """
         slope_lines = {}
         for line in lines:
             x1, y1, x2, y2 = line[0]
@@ -76,7 +85,7 @@ class LaneDetector:
             length = ((x1 - x2) ** 2.0 + (y1 - y2) ** 2.0) ** 0.5
             slope = float(y2 - y1) / (x2 - x1)
             if abs(slope) > 0.20:
-                slope_lines[slope * length] = line
+                slope_lines[slope * length] = line[0]
 
         left = slope_lines[max(slope_lines)]
         right = slope_lines[min(slope_lines)]
@@ -97,11 +106,11 @@ class LaneDetector:
         # cv.circle(img, (x_return,y_return), 5, (0, 0, 255), -1)
 
         p1 = Point()
-        p1.x = x_lane_1 * 2
-        p1.y = y_return * 2
+        p1.x = x_lane_1# * 2
+        p1.y = y_return# * 2
         p2 = Point()
-        p2.x = x_lane_2 * 2
-        p2.y = y_return * 2
+        p2.x = x_lane_2# * 2
+        p2.y = y_return# * 2
 
         msg.detectedLeft = True
         msg.detectedRight = True
@@ -109,9 +118,9 @@ class LaneDetector:
         msg.lineRight = p2
 
         self.lane_pub.publish(msg)
+        """
 
         # Filter lines based on their angle, aiming for almost vertical lines
-        """
         filtered_lines = []
         for line in lines:
             x1, y1, x2, y2 = line[0]
@@ -126,7 +135,6 @@ class LaneDetector:
                 filtered_lines.append(list(line[0]))
                 # rospy.loginfo(line)
                 # rospy.loginfo(slope)
-        """
 
         """
         Filter lines again, this time to try to get a single line per lane.
@@ -134,7 +142,6 @@ class LaneDetector:
         I am deleting the ones which have similar slopes and are further from the center of the image.
         """
 
-        """
         slope_tracker = {}
         copy_filt = copy.deepcopy(filtered_lines)
         for line in copy_filt:
@@ -163,13 +170,13 @@ class LaneDetector:
                 filtered_lines.remove(line)
                 continue
             slope_tracker[slope] = line
-        """
+
         """
         # This is mostly for visualization on the images, won't be needed in the actual function,
         # however, I do construct the line equations here, which we may want to do pre homography.
         print(slope_tracker)
         """
-        # rospy.loginfo(str(len(filtered_lines)) + " lines found.")
+        rospy.loginfo(str(len(filtered_lines)) + " lines found.")
 
         # Visualize lines on image
         """
@@ -180,7 +187,7 @@ class LaneDetector:
         debug_msg = self.bridge.cv2_to_imgmsg(line_img, "bgr8")
         self.debug_pub.publish(debug_msg)
         """
-        """
+        
         y_return = int(np.floor(height * self.LOOKAHEAD_HOMOGRAPHY))
         if len(filtered_lines) == 2:
             # Publish both lines
@@ -216,7 +223,7 @@ class LaneDetector:
         elif len(filtered_lines) == 1:
             # Publish only one line
             x1, y1, x2, y2 = filtered_lines[0]
-            m_1 = (y2 - y1) / (x2 - x1)
+            m_1 = float(y2 - y1) / (x2 - x1)
             b = y1 - m_1 * x1
             x_lane_1 = (y_return - b) / m_1
 
@@ -232,8 +239,6 @@ class LaneDetector:
                 msg.lineRight = p1
 
         self.lane_pub.publish(msg)
-        
-        """
 
         # Changed from keeping track of positions to checking slopes
         """
