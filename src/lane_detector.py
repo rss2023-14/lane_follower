@@ -72,9 +72,11 @@ class LaneDetector:
             x1, y1, x2, y2 = line[0]
             slope = (y2 - y1) / (x2 - x1)
             # angle = np.arctan2(y2-y1, x2-x1) * 180 / np.pi
-            if abs(slope) < 0.5:
+            if abs(slope) < 0.25:
                 continue
             # if abs(angle) < 30: # vertical lines
+            elif abs(slope) > 0.65: 
+                continue
             else:
                 filtered_lines.append(list(line[0]))
 
@@ -94,14 +96,14 @@ class LaneDetector:
                 for oth_slope in copy_slopes.keys():
                     if abs(slope - oth_slope) < 0.20:
                         if slope < 0:
-                            if x1 < slope_tracker[oth_slope][0]:
+                            if x2 < slope_tracker[oth_slope][2]:
                                 filtered_lines.remove(slope_tracker[oth_slope])
                                 del slope_tracker[oth_slope]
                             else:
                                 get_rid = True
                                 break
                         else:
-                            if x1 > slope_tracker[oth_slope][0]:
+                            if x2 > slope_tracker[oth_slope][2]:
                                 filtered_lines.remove(slope_tracker[oth_slope])
                                 del slope_tracker[oth_slope]
                             else:
