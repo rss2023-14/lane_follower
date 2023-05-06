@@ -5,7 +5,7 @@ import numpy as np
 import cv2 as cv
 from cv_bridge import CvBridge, CvBridgeError
 import copy
-from skimage.transform import downscale_local_mean
+# from skimage.transform import downscale_local_mean
 
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Point
@@ -31,7 +31,8 @@ class LaneDetector:
         )
 
     def detect_lane(self, image):
-        img = downscale_local_mean(self.bridge.imgmsg_to_cv2(image, "bgr8"), (2, 2))
+        # img = downscale_local_mean(self.bridge.imgmsg_to_cv2(image, "bgr8"), (2, 2))
+        img = self.bridge.imgmsg_to_cv2(image, "bgr8")
 
         # Mask top half of image
         top_half_mask = np.zeros_like(img)
