@@ -1,13 +1,13 @@
 # pure pursuit parameters
 lookahead_distance: 1.0
 end_threshold: 0.25
-speed: 2.0
-kp: 0.4
+speed: 4.0
+kp: 0.2
 ki: 0.0
-kd: 0.01
+kd: 0.0095
 
 # lane detector parameters
-lookahead_distance_homog: 0.9
+lookahead_distance_homog: 0.8
 
 # homography parameters
 left_lane_offset: 385
@@ -17,10 +17,11 @@ right_lane_offset: 485
 look_ahead_time: 0.5
 half_car_width: 0.2
 ignore_close_distance: 0.1
+detections_required: 3
 
 # topics
-drive_topic: /drive
-# drive_topic: /vesc/ackermann_cmd_mux/input/navigation
+# drive_topic: /drive
+drive_topic: /vesc/ackermann_cmd_mux/input/navigation
 odom_topic: /odom
 lane_topic: /lane
 lookahead_topic: /lookaheadpoint

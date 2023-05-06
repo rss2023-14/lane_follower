@@ -30,7 +30,7 @@ class SafetyController:
         )
 
         self.num_in_row = 0
-        self.num_required = 3
+        self.num_required = rospy.get_param("detections_required")
 
         # Initialize safety control publisher
         self.pub = rospy.Publisher(
