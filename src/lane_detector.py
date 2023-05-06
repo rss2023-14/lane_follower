@@ -29,6 +29,7 @@ class LaneDetector:
         self.camera_sub = rospy.Subscriber(
             "/zed/zed_node/rgb/image_rect_color", Image, self.detect_lane
         )
+        self.debug_pub = rospy.Publisher("/debug_img", Image, queue_size=10)
 
     def detect_lane(self, image):
         # img = downscale_local_mean(self.bridge.imgmsg_to_cv2(image, "bgr8"), (2, 2))
@@ -73,13 +74,15 @@ class LaneDetector:
             x1, y1, x2, y2 = line[0]
             slope = (y2 - y1) / (x2 - x1)
             # angle = np.arctan2(y2-y1, x2-x1) * 180 / np.pi
-            if abs(slope) < 0.25:
+            if abs(slope) < 0.1:
                 continue
             # if abs(angle) < 30: # vertical lines
-            elif abs(slope) > 0.65: 
-                continue
+            # elif abs(slope) > 0.65: 
+            #     continue
             else:
                 filtered_lines.append(list(line[0]))
+                rospy.loginfo(line)
+                rospy.loginfo(slope)
 
         """
         Filter lines again, this time to try to get a single line per lane.
@@ -121,6 +124,14 @@ class LaneDetector:
         print(slope_tracker)
         """
         rospy.loginfo(str(len(filtered_lines)) + " lines found.")
+
+        # Visualize lines on image
+        line_img = img
+        for line in filtered_lines:
+            x1, y1, x2, y2 = line
+            line_img = cv.line(line_img, (x1, y1), (x2, y2), (0,0,255), 2)
+        debug_msg = self.bridge.cv2_to_imgmsg(line_img, "bgr8")
+        self.debug_pub.publish(debug_msg)
 
         y_return = int(np.floor(height * self.LOOKAHEAD_HOMOGRAPHY))
         if len(filtered_lines) == 2:
