@@ -34,7 +34,7 @@ class LaneDetector:
 
     def detect_lane(self, image):
         # img = downscale_local_mean(self.bridge.imgmsg_to_cv2(image, "bgr8"), (2, 2))
-        img = self.bridge.imgmsg_to_cv2(image, "bgr8")
+        img = cv.pyrDown(self.bridge.imgmsg_to_cv2(image, "bgr8"))
 
         # Mask top half of image
         top_half_mask = np.zeros_like(img)
@@ -97,11 +97,11 @@ class LaneDetector:
         # cv.circle(img, (x_return,y_return), 5, (0, 0, 255), -1)
 
         p1 = Point()
-        p1.x = x_lane_1
-        p1.y = y_return
+        p1.x = x_lane_1 * 2
+        p1.y = y_return * 2
         p2 = Point()
-        p2.x = x_lane_2
-        p2.y = y_return
+        p2.x = x_lane_2 * 2
+        p2.y = y_return * 2
 
         msg.detectedLeft = True
         msg.detectedRight = True
