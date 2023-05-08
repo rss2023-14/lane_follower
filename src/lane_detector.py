@@ -41,8 +41,8 @@ class LaneDetector:
         #     return
         # self.counter += 1
 
-        # img = cv.pyrDown(self.bridge.imgmsg_to_cv2(image, "bgr8"))
-        img = self.bridge.imgmsg_to_cv2(image, "bgr8")
+        img = cv.pyrDown(self.bridge.imgmsg_to_cv2(image, "bgr8"))
+        # img = self.bridge.imgmsg_to_cv2(image, "bgr8")
 
         # Mask top half of image
         top_half_mask = np.zeros_like(img)
@@ -63,7 +63,7 @@ class LaneDetector:
             rho=1,
             theta=np.pi / 180,
             threshold=50,
-            minLineLength=150,
+            minLineLength=75,
             maxLineGap=10,
         )
 
@@ -203,11 +203,11 @@ class LaneDetector:
             # cv.circle(img, (x_return,y_return), 5, (0, 0, 255), -1)
 
             p1 = Point()
-            p1.x = x_lane_1
-            p1.y = y_return
+            p1.x = x_lane_1 * 2
+            p1.y = y_return * 2
             p2 = Point()
-            p2.x = x_lane_2
-            p2.y = y_return
+            p2.x = x_lane_2 * 2
+            p2.y = y_return * 2
 
             msg.detectedLeft = True
             msg.detectedRight = True
@@ -226,8 +226,8 @@ class LaneDetector:
             x_lane_1 = (y_return - b) / m_1
 
             p1 = Point()
-            p1.x = x_lane_1
-            p1.y = y_return
+            p1.x = x_lane_1 * 2
+            p1.y = y_return * 2
 
             if m_1 > 0:
                 msg.detectedLeft = True
