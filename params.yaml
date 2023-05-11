@@ -5,7 +5,9 @@ speed: 4.0
 kp: 0.175
 ki: 0.0
 kd: 0.030
-# THIS WORKS!!!
+# 3 m/s: p=0.125 d=0.015
+# 4 m/s: p=0.175 d=0.030
+# 6 m/s: p=0.250 d=0.050, DON'T FORGET VESC CHANGE
 
 # lane detector parameters
 lookahead_distance_homog: 0.8
