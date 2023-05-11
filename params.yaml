@@ -1,10 +1,10 @@
 # pure pursuit parameters
 lookahead_distance: 1.0
 end_threshold: 0.25
-speed: 3.0
-kp: 0.125
+speed: 4.0
+kp: 0.175
 ki: 0.0
-kd: 0.015
+kd: 0.030
 # THIS WORKS!!!
 
 # lane detector parameters
