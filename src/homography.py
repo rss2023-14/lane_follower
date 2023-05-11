@@ -101,7 +101,8 @@ class HomographyTransformer:
             lineRight_world = self.pixel_to_world(x2, y2)
             midpoint = midpoint_formula(lineLeft_world[0], lineLeft_world[1], lineRight_world[0], lineRight_world[1])
             """
-            midpoint = self.pixel_to_world(midpoint_formula(msg.lineLeft.x, msg.lineLeft.y, msg.lineRight.x, msg.lineRight.y))
+            u, v = midpoint_formula(msg.lineLeft.x, msg.lineLeft.y, msg.lineRight.x, msg.lineRight.y)
+            midpoint = self.pixel_to_world(u, v)
 
             to_chase.point.x = midpoint[0]
             to_chase.point.y = midpoint[1]
@@ -117,7 +118,7 @@ class HomographyTransformer:
             lineLeft_world = self.pixel_to_world(msg.lineLeft.x, msg.lineLeft.y)
 
             to_chase.point.x = lineLeft_world[0]
-            to_chase.point.y = lineLeft_world[1] - 0.45
+            to_chase.point.y = lineLeft_world[1] + 0.45
             
         elif msg.detectedRight:
             # Only right line detected
@@ -129,7 +130,7 @@ class HomographyTransformer:
             lineRight_world = self.pixel_to_world(msg.lineRight.x, msg.lineRight.y)
 
             to_chase.point.x = lineRight_world[0]
-            to_chase.point.y = lineRight_world[1] + 0.45
+            to_chase.point.y = lineRight_world[1] - 0.45
         else:
             # No lines detected, publish point right in front of car
             to_chase.point.x = self.LOOKAHEAD_DISTANCE

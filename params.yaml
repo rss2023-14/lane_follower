@@ -2,9 +2,10 @@
 lookahead_distance: 1.0
 end_threshold: 0.25
 speed: 3.0
-kp: 0.2
+kp: 0.125
 ki: 0.0
-kd: 0.0095
+kd: 0.015
+# THIS WORKS!!!
 
 # lane detector parameters
 lookahead_distance_homog: 0.8

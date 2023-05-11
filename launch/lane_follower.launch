@@ -8,7 +8,7 @@
 	<include file="$(find zed_wrapper)/launch/zed.launch"/>
 	<node name="lane_detector" pkg="lane_follower" type="lane_detector.py" output="screen"/>
 	<node name="left_camera_tf_broadcaster" pkg="tf2_ros" type="static_transform_publisher"
-		args="0.24 0.06 0.14 0 0 0 1 base_link left_zed_camera"/>
+		args="0.27 0.06 0.19 0 0 0 1 base_link left_zed_camera"/>
 	<node name="homography" pkg="lane_follower" type="homography.py" output="screen"/>
 
 	<!-- Start controllers -->

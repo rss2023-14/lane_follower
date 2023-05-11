@@ -100,11 +100,13 @@ class PursuitController():
 
         drive_cmd = AckermannDriveStamped()
         drive_cmd.header.stamp = rospy.Time.now()
-        #drive_cmd.header.frame_id = "base_link"
+        drive_cmd.header.frame_id = "base_link"
 
         desired_angle = self.Kp * theta_err + \
             self.Kd * d_theta_dt + self.Ki * self.running_theta_err
-        drive_cmd.drive.steering_angle = np.sign(desired_angle)*min(abs(desired_angle), np.deg2rad(2.5))
+        # drive_cmd.drive.steering_angle = np.sign(desired_angle)*min(abs(desired_angle), np.deg2rad(2.5))
+        drive_cmd.drive.steering_angle = desired_angle # Car wheels are locking, maybe this is the fix??
+        rospy.loginfo("Commanding " + str(desired_angle) + " rads (" + str(np.rad2deg(desired_angle)) + " deg).")
         drive_cmd.drive.steering_angle_velocity = 0.0 # 0.0015
 
         drive_cmd.drive.speed = self.SPEED
