@@ -151,7 +151,7 @@ class LaneDetector:
             if slope_tracker != {}:
                 copy_slopes = copy.deepcopy(slope_tracker)
                 for oth_slope in copy_slopes.keys():
-                    if abs(slope - oth_slope) < 0.20:
+                    if abs(slope - oth_slope) < 0.3:
                         if slope < 0:
                             if x2 < slope_tracker[oth_slope][2]:
                                 filtered_lines.remove(slope_tracker[oth_slope])
@@ -179,12 +179,14 @@ class LaneDetector:
         rospy.loginfo(str(len(filtered_lines)) + " lines found.")
 
         # Visualize lines on image
+        """
         line_img = img
         for line in filtered_lines:
             x1, y1, x2, y2 = line
             line_img = cv.line(line_img, (x1, y1), (x2, y2), (0,0,255), 2)
         debug_msg = self.bridge.cv2_to_imgmsg(line_img, "bgr8")
         self.debug_pub.publish(debug_msg)
+        """
         
         y_return = int(np.floor(height * self.LOOKAHEAD_HOMOGRAPHY))
         if len(filtered_lines) == 2:
