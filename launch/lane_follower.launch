@@ -12,7 +12,7 @@
 	<node name="homography" pkg="lane_follower" type="homography.py" output="screen"/>
 
 	<!-- Start controllers -->
-	<!-- <node name="safety_controller" pkg="lane_follower" type="safety_controller.py" output="screen"/> -->
+	<node name="safety_controller" pkg="lane_follower" type="safety_controller.py" output="screen"/>
 	<node name="pure_pursuit" pkg="lane_follower" type="driver_pursuit.py" output="screen">
 		<rosparam param="publish_metrics">false</rosparam>
 	</node>
